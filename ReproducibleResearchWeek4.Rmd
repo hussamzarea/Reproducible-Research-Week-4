@@ -4,14 +4,14 @@ sessionInfo()
 ```
 
 ---
-title: "Markdown & knitr"
+title: "Reproducible Research Week4"
 output:
   html_document: default
   word_document: default
-date: "July 9, 2017"
+date: "July 20, 2017"
 ---
 
-#Markdown & knitr Assignment
+#Reproducible Research Week4
 
 
 ### Load Libraries
