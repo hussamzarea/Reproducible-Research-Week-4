@@ -1,0 +1,150 @@
+---
+title: "US Storm Data"
+author: "Hussam Zarea"
+date: "July 22, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#set directory
+```
+
+setwd("C:/Users/hussamzarea/Desktop/Coursera/ReproducibleResearch/Week4")
+```
+
+```{r}
+#download data file
+#download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2", destfile = "stormData.csv.bz2")
+stormDatra <- read.csv(bzfile("stormData.csv.bz2"), sep=",", header=T)
+```
+
+```{r}
+#get data diminition
+dim(stormDatra)
+```
+
+```{r}
+#get data header
+head(stormDatra)
+```
+
+```{r}
+#get data needed
+cleanStormData <- stormDatra[,c(8,23:28)]
+```
+
+```{r}
+# View headers in revised data set
+head(cleanStormData)
+```
+
+```{r}
+# Convert Property Damage 
+cleanStormData$PROPDMGDOLLARS = 0
+cleanStormData[cleanStormData$PROPDMGEXP == "H", ]$PROPDMGDOLLARS = cleanStormData[cleanStormData$PROPDMGEXP == "H", ]$PROPDMG * 10^2
+cleanStormData[cleanStormData$PROPDMGEXP == "K", ]$PROPDMGDOLLARS = cleanStormData[cleanStormData$PROPDMGEXP == "K", ]$PROPDMG * 10^3
+cleanStormData[cleanStormData$PROPDMGEXP == "M", ]$PROPDMGDOLLARS = cleanStormData[cleanStormData$PROPDMGEXP == "M", ]$PROPDMG * 10^6
+cleanStormData[cleanStormData$PROPDMGEXP == "B", ]$PROPDMGDOLLARS = cleanStormData[cleanStormData$PROPDMGEXP == "B", ]$PROPDMG * 10^9
+
+# Convert Crop Damage 
+cleanStormData$CROPDMGDOLLARS = 0
+cleanStormData[cleanStormData$CROPDMGEXP == "H", ]$CROPDMGDOLLARS = cleanStormData[cleanStormData$CROPDMGEXP == "H", ]$CROPDMG * 10^2
+cleanStormData[cleanStormData$CROPDMGEXP == "K", ]$CROPDMGDOLLARS = cleanStormData[cleanStormData$CROPDMGEXP == "K", ]$CROPDMG * 10^3
+cleanStormData[cleanStormData$CROPDMGEXP == "M", ]$CROPDMGDOLLARS = cleanStormData[cleanStormData$CROPDMGEXP == "M", ]$CROPDMG * 10^6
+cleanStormData[cleanStormData$CROPDMGEXP == "B", ]$CROPDMGDOLLARS = cleanStormData[cleanStormData$CROPDMGEXP == "B", ]$CROPDMG * 10^9
+
+```
+
+```{r}
+# get data headers to check the change
+head(cleanStormData)
+```
+
+```{r}
+#load libraries
+library(ggplot2)
+library(gridExtra)
+```
+
+```{r}
+#group fatalities by event type and sum it
+fatalities <- aggregate(FATALITIES ~ EVTYPE, data=cleanStormData, sum)
+```
+
+```{r}
+#group injuries by event type and sum it
+injuries <- aggregate(INJURIES ~ EVTYPE, data = cleanStormData, sum)
+```
+
+```{r}
+## sort the fatality data
+fatalities <- fatalities[order(-fatalities$FATALITIES), ][1:20, ]
+fatalities$EVTYPE <- factor(fatalities$EVTYPE, levels = fatalities$EVTYPE)
+head(fatalities)
+```
+
+```{r}
+## Sort the injury data
+injuries <- injuries[order(-injuries$INJURIES), ][1:20, ]
+injuries$EVTYPE <- factor(injuries$EVTYPE, levels = injuries$EVTYPE)
+head(injuries)
+```
+
+
+```{r}
+# set the fatality plot pramaters
+fatalityPlot = ggplot(fatalities, aes(x = EVTYPE, y = FATALITIES, theme_set(theme_bw()))) + 
+  geom_bar(stat = "identity", fill = "red") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 4)) + 
+  xlab("Event Type") + 
+  ylab("Fatalities") + 
+  ggtitle("Fatality by Event Types") +
+  theme(plot.title = element_text(size = 10))
+```
+
+```{r}
+# set the injury plot pramaters
+injuryPlot = ggplot(injuries, aes(x = EVTYPE, y = INJURIES, theme_set(theme_bw()))) + 
+  geom_bar(stat = "identity", fill = "blue") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 4)) + 
+  xlab("Event Type") + 
+  ylab("Injuries") + 
+  ggtitle("Injury by Event Types") +
+  theme(plot.title = element_text(size = 10))
+```
+
+```{r}
+# plot both fatality and injury side by side
+grid.arrange(fatalityPlot, injuryPlot, ncol = 2, top = "Most Harmful Events By Population Health")
+```
+
+```{r}
+## Organize Property & Crop to Event Type and store in object "damage"
+damage <- aggregate(PROPDMGDOLLARS + CROPDMGDOLLARS ~ EVTYPE, data=cleanStormData, sum)
+names(damage) = c("EVENT_TYPE", "TOTAL_DAMAGE")
+```
+
+```{r}
+#get the most damage event in the US 
+damage <- damage[order(-damage$TOTAL_DAMAGE), ][1:20, ]
+damage$EVENT_TYPE <- factor(damage$EVENT_TYPE, levels = damage$EVENT_TYPE)
+```
+
+```{r}
+# get header
+head(damage)
+```
+
+```{r}
+#plot the most damage event in the US
+ggplot(damage, aes(x = EVENT_TYPE, y = TOTAL_DAMAGE, theme_set(theme_bw()))) +
+  geom_bar(stat = "identity", fill = "red") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  xlab("Event Type") + 
+  ylab("Total Damage in US Dollor") + 
+  ggtitle("the US greatest economic consequences in Property & Crop Damage by top 20 Weather Events")
+```
