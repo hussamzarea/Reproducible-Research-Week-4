@@ -9,41 +9,48 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+#Reproducible Research Week 4
+
+##Data Processing
+
+####Set The Directory
 ```{r}
-#set directory
+setwd("C:/Users/hzarea/Desktop/Coursera/ReproducibleResearch/Week4")
 ```
 
-setwd("C:/Users/hussamzarea/Desktop/Coursera/ReproducibleResearch/Week4")
-```
-
+####Download and read the data and store it in stormData variable 
 ```{r}
 #download data file
-#download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2", destfile = "stormData.csv.bz2")
+#use this one time only.  after the data is downloaded, coment it
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2", destfile = "stormData.csv.bz2")
+
+#read data and store in stormData
 stormDatra <- read.csv(bzfile("stormData.csv.bz2"), sep=",", header=T)
 ```
 
+####Get the ddiminition of the stormData
 ```{r}
-#get data diminition
 dim(stormDatra)
 ```
 
+####Get the header of the stormData
 ```{r}
-#get data header
 head(stormDatra)
 ```
 
+####Get only the needed stormData
 ```{r}
-#get data needed
 cleanStormData <- stormDatra[,c(8,23:28)]
 ```
 
+####View the headers of the cleanStormData
 ```{r}
-# View headers in revised data set
 head(cleanStormData)
 ```
 
+####Convert the property damage
 ```{r}
-# Convert Property Damage 
 cleanStormData$PROPDMGDOLLARS = 0
 cleanStormData[cleanStormData$PROPDMGEXP == "H", ]$PROPDMGDOLLARS = cleanStormData[cleanStormData$PROPDMGEXP == "H", ]$PROPDMG * 10^2
 cleanStormData[cleanStormData$PROPDMGEXP == "K", ]$PROPDMGDOLLARS = cleanStormData[cleanStormData$PROPDMGEXP == "K", ]$PROPDMG * 10^3
@@ -59,44 +66,54 @@ cleanStormData[cleanStormData$CROPDMGEXP == "B", ]$CROPDMGDOLLARS = cleanStormDa
 
 ```
 
+####View the headers again to check the changes/addtions to the data
 ```{r}
-# get data headers to check the change
 head(cleanStormData)
 ```
 
+####Load the libraries need to produce the grafics 
 ```{r}
 #load libraries
 library(ggplot2)
 library(gridExtra)
 ```
 
+
+####Group fatality data by event type and sum the result
 ```{r}
-#group fatalities by event type and sum it
 fatalities <- aggregate(FATALITIES ~ EVTYPE, data=cleanStormData, sum)
 ```
 
+####Group the injury data by event type and sum teh result
 ```{r}
-#group injuries by event type and sum it
 injuries <- aggregate(INJURIES ~ EVTYPE, data = cleanStormData, sum)
 ```
 
+####Sort the fatality data
 ```{r}
-## sort the fatality data
+#sort the fatality data
 fatalities <- fatalities[order(-fatalities$FATALITIES), ][1:20, ]
+
+#group by event Type
 fatalities$EVTYPE <- factor(fatalities$EVTYPE, levels = fatalities$EVTYPE)
+#get header
 head(fatalities)
 ```
 
+####Sort the injury data
 ```{r}
-## Sort the injury data
+#Sort the injury data
 injuries <- injuries[order(-injuries$INJURIES), ][1:20, ]
+
+#group the injury data
 injuries$EVTYPE <- factor(injuries$EVTYPE, levels = injuries$EVTYPE)
+
+#get header
 head(injuries)
 ```
 
-
+####Set the fatality plot proamters
 ```{r}
-# set the fatality plot pramaters
 fatalityPlot = ggplot(fatalities, aes(x = EVTYPE, y = FATALITIES, theme_set(theme_bw()))) + 
   geom_bar(stat = "identity", fill = "red") + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 4)) + 
@@ -106,8 +123,8 @@ fatalityPlot = ggplot(fatalities, aes(x = EVTYPE, y = FATALITIES, theme_set(them
   theme(plot.title = element_text(size = 10))
 ```
 
+####Set the injury plot pramaters
 ```{r}
-# set the injury plot pramaters
 injuryPlot = ggplot(injuries, aes(x = EVTYPE, y = INJURIES, theme_set(theme_bw()))) + 
   geom_bar(stat = "identity", fill = "blue") + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 4)) + 
@@ -117,32 +134,32 @@ injuryPlot = ggplot(injuries, aes(x = EVTYPE, y = INJURIES, theme_set(theme_bw()
   theme(plot.title = element_text(size = 10))
 ```
 
+####Plot both the fatality and the injury data side by side
 ```{r}
-# plot both fatality and injury side by side
 grid.arrange(fatalityPlot, injuryPlot, ncol = 2, top = "Most Harmful Events By Population Health")
 ```
 
+####Organize and aggragate the data and group to Event Type and store in object "damage"
 ```{r}
-## Organize Property & Crop to Event Type and store in object "damage"
 damage <- aggregate(PROPDMGDOLLARS + CROPDMGDOLLARS ~ EVTYPE, data=cleanStormData, sum)
 names(damage) = c("EVENT_TYPE", "TOTAL_DAMAGE")
 ```
 
+####Get the most damage event in the US 
 ```{r}
-#get the most damage event in the US 
 damage <- damage[order(-damage$TOTAL_DAMAGE), ][1:20, ]
 damage$EVENT_TYPE <- factor(damage$EVENT_TYPE, levels = damage$EVENT_TYPE)
 ```
 
+####Get the header of the most damage event
 ```{r}
-# get header
 head(damage)
 ```
 
+####Plot the most damage event in the US
 ```{r}
-#plot the most damage event in the US
 ggplot(damage, aes(x = EVENT_TYPE, y = TOTAL_DAMAGE, theme_set(theme_bw()))) +
-  geom_bar(stat = "identity", fill = "red") + 
+  geom_bar(stat = "identity", fill = "blue") + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
   xlab("Event Type") + 
   ylab("Total Damage in US Dollor") + 
