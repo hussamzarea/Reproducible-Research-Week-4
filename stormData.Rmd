@@ -2,7 +2,9 @@
 title: "US Storm Data"
 author: "Hussam Zarea"
 date: "July 22, 2017"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -13,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #Reproducible Research Week 4
 
 ##Data Processing
+This project involves analyzing the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.
 
 ####Set The Directory
 ```{r}
